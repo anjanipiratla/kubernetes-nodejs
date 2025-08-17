@@ -1,14 +1,20 @@
-Goal: Setup kubernetes infrastructure and manage locally for development.
+Kubernetes Node.js Setup Guide
 
-Softwares required:
-- Docker
-- Minikube also called as cluster
-- Kubectl 
+Goal
+Set up Kubernetes infrastructure and manage it locally for development.
 
-Installing Docker:
+Software Required
+Docker
+
+Minikube (cluster)
+
+Kubectl
+
+Step 1: Install Docker (Fedora)
+text
 sudo dnf -y update
 sudo dnf -y install dnf-plugins-core
-sudo tee /etc/yum.repos.d/docker-ce.repo<<EOF
+sudo tee /etc/yum.repos.d/docker-ce.repo <<EOF
 [docker-ce-stable]
 name=Docker CE Stable - \$basearch
 baseurl=https://download.docker.com/linux/fedora/\$releasever/\$basearch/stable
@@ -18,40 +24,59 @@ gpgkey=https://download.docker.com/linux/fedora/gpg
 EOF
 sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 sudo systemctl enable --now docker
+Step 2: Install Kubectl & Minikube (Linux)
+Install Kubectl first to avoid errors with Minikube.
 
-Kubectl & Minikube installation on linux:
-Kubectl installation: sudo dnf install -y kubectl (Kubectl has to be installed before minikube, otherwise minikube throws an error unable to find kubectl)
-Download minikube: curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
-Install minikube: sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+text
+# Install Kubectl
+sudo dnf install -y kubectl
 
-Start minikube or cluster: minikube start --driver=docker
-- We can run minikube without setting any driver also. But without setting driver we won't be able to reach endpoints exposed in browser. Hence it is very important to set driver here and I have chosen to use docker for convenience.
+# Download Minikube
+curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
 
-Build the docker image: docker build -t anjanipiratla/kub-first-app .
+# Install Minikube
+sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+Step 3: Start Minikube Cluster
+text
+minikube start --driver=docker
+Setting the driver ensures you can reach endpoints exposed in the browser. Docker is recommended for convenience.
 
-Push image to docker hub: docker push anjanipiratla/kub-first-app (I use locally docker desktop. When I am logged in to docker desktop using my credentials it allows me to push the image to docker hub without any probelms).
+Step 4: Build and Push the Docker Image
+text
+# Build Docker image
+docker build -t anjanipiratla/kub-first-app .
 
-Visit cluster dashboard by: minikube dashboard (This will open kubernete dashboard locally in your default browser)
+# Push image to Docker Hub
+docker push anjanipiratla/kub-first-app
+Step 5: Kubernetes Dashboard
+text
+minikube dashboard
+This opens the Kubernetes dashboard locally in your default browser.
 
-Create a deployment to cluster: kubectl create deployment first-app --image=anjanipiratla/kub-first-app
+Step 6: Deploy Application to Cluster
+text
+kubectl create deployment first-app --image=anjanipiratla/kub-first-app
+Step 7: Expose Service as LoadBalancer
+text
+kubectl expose deployment first-app --type=LoadBalancer --port=8080
+Easily open the exposed endpoint in your browser:
 
-Exposing a service as loadbalancer: kubectl expose deployment first-app --type=LoadBalancer --port=8080
+text
+minikube service first-app
+Step 8: Scale Pods
+Use the dashboard to scale pods as needed.
 
-minikube makes it easy to open this exposed endpoint in your browser: minikube service first-app
+Step 9: Update the Application
+If you change the code:
 
-We can scale the pods by using dashboard.
+Build and push the Docker image with a new tag.
 
-If any changes in code, then we have to build the image and push to docker. When pushing image to docker we need to give it a tag so that when deploy the image the changes will show up otherwise changes will not show up.
+text
+# Push rebuilt image with a new tag
+docker push anjanipiratla/kub-first-app:2
 
-Pushing rebuilt image to docker hub: docker push anjanipiratla/kub-first-app:2
-
-Re-create deployment: kubectl set image deployment first-app kub-first-app=anjanipiratla/kub-first-app:2
-
-Stop minikube or cluster: minikube stop
-
-
-
-
-
-
-
+# Update deployment to use new image
+kubectl set image deployment first-app kub-first-app=anjanipiratla/kub-first-app:2
+Step 10: Stop Cluster
+text
+minikube stop
