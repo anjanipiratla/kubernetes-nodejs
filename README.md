@@ -1,5 +1,4 @@
 Kubernetes Node.js Setup Guide
-
 Goal
 Set up Kubernetes infrastructure and manage it locally for development.
 
